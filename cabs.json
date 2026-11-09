@@ -1,0 +1,35 @@
+[
+  {
+
+    "dname" : "Rohan",
+    "seats" : "4",
+    "destination" : "Jaipur",
+    "time" : "Morning",
+    "studlist" : [],
+    "left" : 0
+  },
+  {
+    "dname" : "Rahul",
+    "seats" : "3",
+    "destination" : "Jaipur",
+    "time" : "Afternoon",
+    "studlist" : [],
+    "left" : 0
+  },
+  {
+    "dname" : "Kamal",
+    "seats" : "3",
+    "destination" : "Delhi",
+    "time" : "Evening",
+    "studlist" : [],
+    "left" : 0
+  },
+  {
+    "dname" : "Manav",
+    "seats" : "4",
+    "destination" : "Delhi",
+    "time" : "Night",
+    "studlist" : [],
+    "left" : 0
+  }
+]
