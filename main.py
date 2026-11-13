@@ -72,7 +72,8 @@ while True:
                     status = "Waiting"
                 print(f"{cab.dname} - {cab.destination}, {cab.time}, {len(cab.studlist)}/{cab.seats} seats filled, {status}")
 
-    elif (choice == '3'):
+    elif choice == '3':
+        given_out = {}
         for cab in cabs:
             if cab.left:
                 continue
@@ -81,7 +82,12 @@ while True:
             if key not in queues or len(queues[key]) == 0:
                 print("   No students are waiting for this cab.")
             else:
-                preview = heapq.nsmallest(cab.seats, queues[key])
+                ordered = sorted(queues[key])
+                start = given_out.get(key, 0)
+                preview = ordered[start:start + cab.seats]
+                given_out[key] = start + len(preview)
+                if len(preview) == 0:
+                    print("   Everyone waiting already has a seat in an earlier cab.")
                 for item in preview:
                     req = item[2]
                     print(f"   {req.name} (year {req.year})")
