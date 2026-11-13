@@ -1,3 +1,4 @@
+import heapq
 import json
 from RideRequest import RideRequest
 from cab import Cab
@@ -5,7 +6,7 @@ from helpers import ask_year, ask_time, dest
 
 
 
-requests = []   
+queues = {}
 cabs = []
 with open("cabs.json","r") as cabs_available:
     cab_list = json.load(cabs_available)
@@ -37,16 +38,22 @@ while True:
         year = ask_year()
         counter = counter + 1
         req = RideRequest(name, destination, time_slot, year, counter)
-        requests.append(req)
+        key = (destination, time_slot)
+        if key not in queues:
+            queues[key] = []
+        heapq.heappush(queues[key],(-year,counter,req))
         print(f"Request added for {name}.")
 
     elif choice == '2':
         print("Students in queue")
-        if len(requests) == 0:
-            print("Nobody is waiting.")
-        else:
-            for req in requests:
+        waiting = 0
+        for heap in queues.values():
+            for item in sorted(heap):
+                req = item[2]
                 print(f"{req.name} - {req.destination}, {req.periodofday}, year {req.year}")
+                waiting += 1
+        if waiting == 0:
+            print("Nobody is waiting.")
 
         print("All cabs:")
         if len(cabs) == 0:
@@ -58,54 +65,47 @@ while True:
                 else:
                     status = "Waiting"
                 print(f"{cab.dname} - {cab.destination}, {cab.time}, {len(cab.studlist)}/{cab.seats} seats filled, {status}")
-    elif choice == '3':
+
+    elif (choice == '3'):
         for cab in cabs:
             if cab.left:
-                continue                      
-            matching = []
-            for req in requests:
-                if req.destination == cab.destination and req.periodofday == cab.time:
-                    matching.append(req)
-            matching = matching[:cab.seats]   
+                continue
+            key = (cab.destination, cab.time)
             print(f"{cab.dname} - {cab.destination}, {cab.time}:")
-            if len(matching) == 0:
-                print("No students are waiting for this cab.")
+            if key not in queues or len(queues[key]) == 0:
+                print("   No students are waiting for this cab.")
             else:
-                for req in matching:
-                    print(f"{req.name} (year {req.year} is waiting for this cab)")
+                preview = heapq.nsmallest(cab.seats, queues[key])
+                for item in preview:
+                    req = item[2]
+                    print(f"   {req.name} (year {req.year})")
+
     elif choice == '4':
         destination = dest()
         time_slot = ask_time()
+        key = (destination, time_slot)
 
         chosen_cab = None
         for cab in cabs:
             if not cab.left and cab.destination == destination and cab.time == time_slot:
                 chosen_cab = cab
-                break                      # first open cab only
+                break
 
         if chosen_cab is None:
             print("No open cab for that trip.")
-        else:                      
-            matching = []
-            for req in requests:
-                if req.destination == chosen_cab.destination and req.periodofday == chosen_cab.time:
-                    matching.append(req)
-            matching = matching[:chosen_cab.seats]   
-            print(f"{chosen_cab.dname} - {chosen_cab.destination}, {chosen_cab.time}:")
-            if len(matching) == 0:
-                print("No students are waiting for this cab.")
-                continue
-            else:
-                chosen_cab.studlist.extend(matching)
-                still_waiting = []
-                for req in requests:
-                    if req not in matching:
-                        still_waiting.append(req)
-                requests = still_waiting
-                chosen_cab.left = True
-                print(f"{chosen_cab.dname}'s cab has left with:")
-                for req in matching:
-                    print(f"{req.name} (year {req.year} has left in this cab)")       
+        elif key not in queues or len(queues[key]) == 0:
+            print("Nobody is waiting for that trip.")
+        else:
+            boarded = []
+            while len(boarded) < chosen_cab.seats and len(queues[key]) > 0:
+                item = heapq.heappop(queues[key])
+                boarded.append(item[2])
+
+            chosen_cab.studlist.extend(boarded)
+            chosen_cab.left = True
+            print(f"{chosen_cab.dname}'s cab has left with:")
+            for req in boarded:
+                print(f"   {req.name} (year {req.year})")      
     
     elif choice == '5':
         break
