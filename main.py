@@ -43,6 +43,12 @@ while True:
             queues[key] = []
         heapq.heappush(queues[key],(-year,counter,req))
         print(f"Request added for {name}.")
+        open_cab_exists = False
+        for cab in cabs:
+            if not cab.left and cab.destination == destination and cab.time == time_slot:
+                open_cab_exists = True
+        if not open_cab_exists:
+            print("No open cab for this trip right now. You will stay on the waiting list.")
 
     elif choice == '2':
         print("Students in queue")
